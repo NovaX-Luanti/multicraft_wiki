@@ -1,425 +1,318 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Multi Wiki — Skeleton</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MultiCraft Wiki — Skeleton</title>
 <style>
   :root{
-    --bg:#0e0f12;
-    --bg2:#14151b;
-    --text:#e8e8ee;
-    --muted:#b6b7c5;
-    --accent:#9be37a;
-    --card:#171923;
-    --border:#2a2d3a;
-    --radius:14px;
+    --bg: #0f1116;
+    --panel: #151925;
+    --text: #e6e6e6;
+    --muted: #9aa3b2;
+    --btn-h: 44px;          /* altezza pulsanti */
+    --btn-pad-x: 14px;      /* padding testo nei pulsanti */
+    --sidebar-w: 280px;     /* larghezza colonna sinistra */
+    --gap: 12px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0;
-    background:
-      radial-gradient(1200px 600px at 10% -10%, #1a1b24 0%, transparent 60%),
-      radial-gradient(1000px 500px at 110% 0%, #1a1b24 0%, transparent 60%),
-      var(--bg);
-    color:var(--text);
-    font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,sans-serif;
-    image-rendering: pixelated; /* per look “game GUI” sulle textures */
+    margin:0; background:var(--bg); color:var(--text);
+    font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
   }
-  /* Layout */
-  .app{
-    display:grid;
-    grid-template-columns: 280px 1fr;
-    grid-template-rows: auto 1fr;
-    grid-template-areas:
-      "header header"
-      "nav content";
-    min-height:100dvh;
+
+  .app{display:flex; min-height:100vh}
+  .sidebar{
+    width:var(--sidebar-w);
+    background:var(--panel);
+    padding:16px;
+    display:flex; flex-direction:column; gap:var(--gap);
+    border-right:1px solid #20263a;
   }
-  header{
-    grid-area:header;
-    position:sticky; top:0; z-index:5;
-    background:var(--bg2);
-    border-bottom:1px solid var(--border);
+  .brand{font-weight:700; letter-spacing:.2px; font-size:16px; color:#fff}
+  .hint{color:var(--muted); font-size:12px; margin-top:-6px}
+
+  .nav{
+    display:flex; flex-direction:column; gap:8px; margin-top:8px;
+    padding-right:6px; /* spazio per la scrollbar custom */
+    overflow:auto; max-height:calc(100vh - 110px);
   }
-  .header-inner{
-    max-width:1200px; margin:0 auto; padding:10px 16px;
-    display:flex; align-items:center; gap:12px;
+
+  /* PULSANTI GUI segmentati: sinistra / centro / destra */
+  .mc-btn{
+    --h: var(--btn-h);
+    display:flex; align-items:center; user-select:none; cursor:pointer;
+    height:var(--h); text-decoration:none; color:#fff; font-weight:600;
+    filter: drop-shadow(0 1px 0 rgba(0,0,0,.35));
   }
-  .logo{
-    display:flex; align-items:center; gap:10px; min-height:40px;
+  .mc-btn .left, .mc-btn .mid, .mc-btn .right{
+    height:100%; display:block; background-repeat:no-repeat; background-size:100% 100%;
   }
-  .logo__mark{
-    width:44px; height:28px;
-    background-repeat:no-repeat;
-    background-position:center;
-    background-size:contain;
-    /* useremo un bottone “yellow pressed” come badge */
+  .mc-btn .left, .mc-btn .right{width:var(--h)}
+  .mc-btn .mid{
+    min-width:96px; flex:1 1 auto; display:flex; align-items:center; justify-content:center;
+    padding:0 var(--btn-pad-x);
+    /* il middle è stretchabile in X */
+    background-repeat: repeat-x; background-size: auto 100%;
   }
-  .title{
-    font-weight:700; letter-spacing:.2px;
-  }
-  .subtitle{
-    color:var(--muted); font-size:12px;
-  }
-  .search{
-    margin-left:auto; position:relative; width: min(380px, 45vw);
-  }
-  .search input{
-    width:100%;
-    border-radius:12px; border:1px solid var(--border);
-    background:#11131a; color:var(--text);
-    padding:10px 12px 10px 12px; outline:none;
-  }
-  /* Nav */
-  nav{
-    grid-area:nav;
-    border-right:1px solid var(--border);
-    background:linear-gradient(#11131a,#0f1117);
-    padding:14px;
-  }
-  .nav-group{ display:flex; flex-direction:column; gap:10px }
-  .nav-btn{
-    --h:42px;
-    height:var(--h);
-    border:none; outline:none;
-    padding:0 14px;
-    color:#12220f;
-    font-weight:700;
-    text-shadow:0 1px 0 rgba(255,255,255,.3), 0 -1px 0 rgba(0,0,0,.4);
-    display:flex; align-items:center; justify-content:flex-start;
-    gap:10px;
-    border-radius:10px;
-    background: transparent; /* le texture arrivano da pseudo elementi */
-    position:relative; cursor:pointer;
-    user-select:none;
-  }
-  .nav-btn::before{
-    /* stato base = gui_button_green.png */
-    content:""; position:absolute; inset:0;
-    background-repeat:repeat;
-    background-size:contain;
-    border-radius:10px;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,.35));
-  }
-  .nav-btn:hover::before{
-    /* hover = gui_button_green_hovered.png */
-  }
-  .nav-btn:active::before,
-  .nav-btn.is-active::before{
-    /* pressed = gui_button_green_pressed.png */
-  }
-  .nav-btn span{ position:relative; z-index:1 }
-  /* Content */
-  main{
-    grid-area:content;
-    padding:18px; min-width:0;
-  }
-  .container{
-    max-width:1200px; margin:0 auto;
-    display:grid; gap:16px;
-    grid-template-columns: 1fr;
+
+  /* Variante GRIGIA (default) */
+  .mc-btn.gray .left  { background-image:url('gui/gui_button_left.png'); }
+  .mc-btn.gray .mid   { background-image:url('gui/gui_button_middle.png'); }
+  .mc-btn.gray .right { background-image:url('gui/gui_button_right.png'); }
+  .mc-btn.gray:hover .left  { background-image:url('gui/gui_button_left_hovered.png'); }
+  .mc-btn.gray:hover .mid   { background-image:url('gui/gui_button_middle_hovered.png'); }
+  .mc-btn.gray:hover .right { background-image:url('gui/gui_button_right_hovered.png'); }
+  .mc-btn.gray.active .left  { background-image:url('gui/gui_button_left_pressed.png'); }
+  .mc-btn.gray.active .mid   { background-image:url('gui/gui_button_middle_pressed.png'); }
+  .mc-btn.gray.active .right { background-image:url('gui/gui_button_right_pressed.png'); }
+
+  /* Layout contenuto */
+  .content{
+    flex:1 1 auto; min-width:0; padding:22px;
+    overflow:auto;
   }
   .card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:16px;
+    background:var(--panel); border:1px solid #20263a; border-radius:10px;
+    padding:18px; margin-bottom:16px;
   }
-  .empty{
-    display:grid; gap:8px;
+  h1{font-size:22px; margin:0 0 10px}
+  h2{font-size:16px; color:#d5ddff; margin:18px 0 8px}
+  p{margin:0 0 10px; color:#d6d9e0}
+
+  /* Sezioni mostra/nascondi */
+  .section{display:none}
+  .section.active{display:block}
+
+  /* SCROLLBAR custom con asset GUI */
+  /* Verticale (area nav e content) */
+  .nav::-webkit-scrollbar,
+  .content::-webkit-scrollbar { width:16px; height:16px; }
+  .nav::-webkit-scrollbar-track,
+  .content::-webkit-scrollbar-track{
+    background-image:url('gui/scrollbar_bg.png'); background-repeat:repeat-y; background-size:100% auto;
   }
-  .empty h2{ margin:0 }
-  .chips{ display:flex; flex-wrap:wrap; gap:8px; }
-  .chip{
-    height:32px; padding:0 10px;
-    display:inline-flex; align-items:center; gap:8px;
-    border-radius:999px;
-    border:1px solid var(--border);
-    background:#121521;
-    font-size:12px; color:var(--muted);
+  .nav::-webkit-scrollbar-thumb,
+  .content::-webkit-scrollbar-thumb{
+    background-image:url('gui/scrollbar_slider.png'); background-repeat:no-repeat; background-size:cover;
+    border-radius:2px;
   }
-  .pill{
-    padding:4px 8px; border-radius:999px;
-    border:1px solid var(--border); background:#121521; color:var(--muted); font-size:12px;
+  .nav::-webkit-scrollbar-button:vertical:decrement,
+  .content::-webkit-scrollbar-button:vertical:decrement{
+    height:16px; background-image:url('gui/scrollbar_up.png'); background-repeat:no-repeat; background-size:contain;
   }
-  /* Custom scrollbar usando le texture */
-  .scrollable{
-    max-height: 60vh; overflow:auto;
-    scrollbar-width: thin; /* Firefox base */
+  .nav::-webkit-scrollbar-button:vertical:increment,
+  .content::-webkit-scrollbar-button:vertical:increment{
+    height:16px; background-image:url('gui/scrollbar_down.png'); background-repeat:no-repeat; background-size:contain;
   }
-  /* Chrome/Edge custom */
-  .scrollable::-webkit-scrollbar{ width:14px; height:14px }
-  .scrollable::-webkit-scrollbar-track{
-    background: transparent;
+  /* Orizzontale (se mai servisse) */
+  .content::-webkit-scrollbar:horizontal{ height:16px }
+  .content::-webkit-scrollbar-track:horizontal{
+    background-image:url('gui/scrollbar_horiz_bg.png'); background-repeat:repeat-x; background-size:auto 100%;
   }
-  .scrollable::-webkit-scrollbar-thumb{
-    border-radius:8px;
-    background-repeat:repeat-y;
-    background-position:center top;
+  .content::-webkit-scrollbar-thumb:horizontal{
+    background-image:url('gui/scrollbar_slider.png'); background-size:cover;
   }
-  /* Responsive */
+
+  /* Responsive: sidebar comprimibile */
   @media (max-width: 980px){
-    .app{ grid-template-columns: 1fr; grid-template-areas: "header" "nav" "content" }
-    nav{ position:sticky; top:60px; z-index:4; }
+    .app{flex-direction:column}
+    .sidebar{width:100%; border-right:none; border-bottom:1px solid #20263a}
+    .nav{flex-direction:row; overflow:auto hidden; max-height:none; padding-bottom:8px}
+    .mc-btn{--h:40px}
+    .mc-btn .mid{min-width:140px}
+    .content{padding:16px}
   }
-  /* Utility */
-  .hide{ display:none !important }
-  a{ color:var(--accent); text-decoration:none }
-  a:hover{ text-decoration:underline }
-  .muted{ color:var(--muted) }
-  footer{ color:var(--muted); font-size:12px; padding:16px 0; }
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="header-inner">
-      <div class="logo">
-        <div class="logo__mark" id="logoMark" aria-hidden="true"></div>
-        <div>
-          <div class="title">Multi Wiki</div>
-          <div class="subtitle">Scheletro pronto • Nessun articolo (ancora)</div>
-        </div>
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">MultiCraft Wiki</div>
+        <div class="hint">UI basata solo su asset GUI</div>
       </div>
-      <div class="search">
-        <input id="search" type="search" placeholder="Cerca sezione…" autocomplete="off" />
-      </div>
-    </div>
-  </header>
 
-  <nav>
-    <div class="nav-group" id="navGroup">
-      <!-- I pulsanti vengono generati da JS, così colleghiamo hash routing e texture GUI -->
-    </div>
-  </nav>
+      <nav class="nav" id="nav">
+        <!-- Ogni voce è un pulsante segmentato (left/mid/right) -->
+        <a href="#trading" class="mc-btn gray active" data-section="trading" aria-label="Trading">
+          <span class="left"></span><span class="mid">Trading</span><span class="right"></span>
+        </a>
+        <a href="#pozioni" class="mc-btn gray" data-section="pozioni" aria-label="Pozioni">
+          <span class="left"></span><span class="mid">Pozioni</span><span class="right"></span>
+        </a>
+        <a href="#enchanting" class="mc-btn gray" data-section="enchanting" aria-label="Enchanting">
+          <span class="left"></span><span class="mid">Enchanting</span><span class="right"></span>
+        </a>
+        <a href="#blocchi" class="mc-btn gray" data-section="blocchi" aria-label="Blocchi">
+          <span class="left"></span><span class="mid">Blocchi</span><span class="right"></span>
+        </a>
+        <a href="#items" class="mc-btn gray" data-section="items" aria-label="Items">
+          <span class="left"></span><span class="mid">Items</span><span class="right"></span>
+        </a>
+        <a href="#smelting" class="mc-btn gray" data-section="smelting" aria-label="Smelting">
+          <span class="left"></span><span class="mid">Smelting</span><span class="right"></span>
+        </a>
+        <a href="#crafting" class="mc-btn gray" data-section="crafting" aria-label="Crafting">
+          <span class="left"></span><span class="mid">Crafting</span><span class="right"></span>
+        </a>
+        <a href="#strutture" class="mc-btn gray" data-section="strutture" aria-label="Strutture">
+          <span class="left"></span><span class="mid">Strutture</span><span class="right"></span>
+        </a>
+        <a href="#bluestone" class="mc-btn gray" data-section="bluestone" aria-label="Bluestone">
+          <span class="left"></span><span class="mid">Bluestone</span><span class="right"></span>
+        </a>
+        <a href="#mods" class="mc-btn gray" data-section="mods" aria-label="Mods">
+          <span class="left"></span><span class="mid">Mods</span><span class="right"></span>
+        </a>
+        <a href="#storia-di-multi" class="mc-btn gray" data-section="storia-di-multi" aria-label="Storia di Multi">
+          <span class="left"></span><span class="mid">Storia di Multi</span><span class="right"></span>
+        </a>
+        <a href="#oggetti-eliminati" class="mc-btn gray" data-section="oggetti-eliminati" aria-label="Oggetti eliminati">
+          <span class="left"></span><span class="mid">Oggetti eliminati</span><span class="right"></span>
+        </a>
+        <a href="#gente-importante" class="mc-btn gray" data-section="gente-importante" aria-label="Gente importante">
+          <span class="left"></span><span class="mid">Gente importante</span><span class="right"></span>
+        </a>
+      </nav>
+    </aside>
 
-  <main>
-    <div class="container">
-      <section class="card">
-        <div id="sectionTitle" class="muted pill">/</div>
-        <div class="empty">
-          <h2 id="sectionHeading">Benvenuto 👋</h2>
-          <p id="sectionNote" class="muted">Seleziona una sezione a sinistra. Qui comparirà l’indice e, più avanti, gli articoli.</p>
-          <div class="chips" id="chipList"></div>
+    <main class="content" id="content" tabindex="0" aria-live="polite">
+      <!-- Sezioni vuote pronte da riempire -->
+      <section class="section active" id="section-trading" data-section="trading">
+        <div class="card">
+          <h1>Trading</h1>
+          <p>Pagina vuota. Aggiungi ricette, tassi di scambio e NPC coinvolti.</p>
         </div>
       </section>
 
-      <section class="card">
-        <h3 style="margin-top:0">Stato contenuti</h3>
-        <div class="scrollable" id="statusList">
-          <!-- Lista placeholder delle sezioni (tutte “vuote” per ora) -->
+      <section class="section" id="section-pozioni" data-section="pozioni">
+        <div class="card">
+          <h1>Pozioni</h1>
+          <p>Effetti, durata, ingredienti e varianti.</p>
         </div>
       </section>
 
-      <footer class="container">
-        <div>UI basata esclusivamente sulle texture della tua <strong>GUI</strong>. Nessuna libreria esterna.</div>
-      </footer>
-    </div>
-  </main>
-</div>
+      <section class="section" id="section-enchanting" data-section="enchanting">
+        <div class="card">
+          <h1>Enchanting</h1>
+          <p>Tabelle livelli, probabilità e combinazioni.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-blocchi" data-section="blocchi">
+        <div class="card">
+          <h1>Blocchi</h1>
+          <p>Catalogo dei nodes, proprietà e drop.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-items" data-section="items">
+        <div class="card">
+          <h1>Items</h1>
+          <p>Strumenti, materiali, consumabili.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-smelting" data-section="smelting">
+        <div class="card">
+          <h1>Smelting</h1>
+          <p>Ricette di cottura, tempi e combustibili.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-crafting" data-section="crafting">
+        <div class="card">
+          <h1>Crafting</h1>
+          <p>Pattern, output e compatibilità versioni.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-strutture" data-section="strutture">
+        <div class="card">
+          <h1>Strutture</h1>
+          <p>Generazione, loot e rarità.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-bluestone" data-section="bluestone">
+        <div class="card">
+          <h1>Bluestone</h1>
+          <p>Componenti, logica e circuiti di base.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-mods" data-section="mods">
+        <div class="card">
+          <h1>Mods</h1>
+          <p>Elenco mod, compatibilità e link.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-storia-di-multi" data-section="storia-di-multi">
+        <div class="card">
+          <h1>Storia di Multi</h1>
+          <p>Timeline, autori e milestone del progetto.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-oggetti-eliminati" data-section="oggetti-eliminati">
+        <div class="card">
+          <h1>Oggetti eliminati</h1>
+          <p>Contenuti rimossi, motivazioni e sostituzioni.</p>
+        </div>
+      </section>
+
+      <section class="section" id="section-gente-importante" data-section="gente-importante">
+        <div class="card">
+          <h1>Gente importante</h1>
+          <p>Contributor, maintainer e creatori di mod.</p>
+        </div>
+      </section>
+    </main>
+  </div>
 
 <script>
-/* ==== CONFIGURAZIONE PERCORSI DELLA TUA GUI ==== 
-   Metti questo index.html nella stessa cartella della directory "gui/"
-   che contiene le immagini (es. gui/gui_button_green.png, scrollbar_*.png, ecc).
-   Se la cartella ha un altro nome o percorso, cambia qui sotto. */
-const GUI_BASE = "gui/";
+  // Router ultra-semplice per sezioni + stato pulsanti
+  const navLinks = [...document.querySelectorAll('.nav .mc-btn')];
+  const sections = [...document.querySelectorAll('.content .section')];
 
-/* Sezioni richieste */
-const SECTIONS = [
-  "Trading","Pozioni","Enchanting","Blocchi","Items","Smelting","Crafting",
-  "Strutture","Bluestone","Mods","Storia di Multi","Oggetti eliminati","Gente importante"
-];
-
-/* Texture mapping: usiamo le varianti green per i bottoni */
-const TEX = {
-  btn_idle:       GUI_BASE + "gui_button_green.png",
-  btn_hover:      GUI_BASE + "gui_button_green_hovered.png",
-  btn_pressed:    GUI_BASE + "gui_button_green_pressed.png",
-  btn_idle_x2:    GUI_BASE + "gui_button_green.x2.png",
-  btn_hover_x2:   GUI_BASE + "gui_button_green_hovered.x2.png",
-  btn_pressed_x2: GUI_BASE + "gui_button_green_pressed.x2.png",
-
-  logo_badge:     GUI_BASE + "gui_button_yellow_pressed.png", // usato come “badge” logo
-  scroll_track:   GUI_BASE + "scrollbar_bg.png",
-  scroll_thumb:   GUI_BASE + "scrollbar_slider_middle.png",
-  scroll_thumb_top: GUI_BASE + "scrollbar_slider_top.png",
-  scroll_thumb_bot: GUI_BASE + "scrollbar_slider_bottom.png"
-};
-
-/* Utilità per applicare texture ai pulsanti nav */
-function styleNavButton(el){
-  // stato base
-  el.style.setProperty("--bg-idle", `url('${TEX.btn_idle}')`);
-  el.style.setProperty("--bg-hover", `url('${TEX.btn_hover}')`);
-  el.style.setProperty("--bg-pressed", `url('${TEX.btn_pressed}')`);
-  // Applica tramite CSS inline on the fly
-  const setBg = (url)=> el.style.setProperty("--curr-bg", `url('${url}')`);
-  el.addEventListener("mouseenter", ()=> setBg(TEX.btn_hover));
-  el.addEventListener("mouseleave", ()=> setBg(el.classList.contains("is-active")? TEX.btn_pressed : TEX.btn_idle));
-  el.addEventListener("mousedown", ()=> setBg(TEX.btn_pressed));
-  el.addEventListener("mouseup",   ()=> setBg(TEX.btn_hover));
-  // iniziale
-  setBg(TEX.btn_idle);
-  // Pseudo con before tramite style attrib (workaround per single-file)
-  el.style.position="relative";
-  const before = document.createElement("span");
-  before.setAttribute("aria-hidden","true");
-  before.style.position="absolute";
-  before.style.inset="0";
-  before.style.borderRadius="10px";
-  before.style.backgroundImage=`var(--curr-bg)`;
-  before.style.backgroundRepeat="repeat";
-  before.style.backgroundSize="auto 100%";
-  before.style.filter="drop-shadow(0 4px 8px rgba(0,0,0,.35))";
-  el.prepend(before);
-  // Portiamo il testo sopra
-  el.querySelector("span").style.position="relative";
-  el.querySelector("span").style.zIndex="1";
-}
-
-/* Custom scrollbar usando le tue texture */
-function styleScrollbars(){
-  const style = document.createElement("style");
-  style.textContent = `
-    .scrollable::-webkit-scrollbar-track{
-      background: url('${TEX.scroll_track}') repeat-y center top;
-      background-size: 100% auto;
-    }
-    .scrollable::-webkit-scrollbar-thumb{
-      background-image:
-        url('${TEX.scroll_thumb_top}'),
-        url('${TEX.scroll_thumb}'),
-        url('${TEX.scroll_thumb_bot}');
-      background-repeat: no-repeat, repeat-y, no-repeat;
-      background-position: center top, center, center bottom;
-      background-size: 100% 10px, 100% auto, 100% 10px;
-    }
-  `;
-  document.head.appendChild(style);
-}
-
-/* Header “logo” (usiamo il bottone yellow pressed come toppa stilosa) */
-function styleLogo(){
-  const mark = document.getElementById("logoMark");
-  mark.style.backgroundImage = `url('${TEX.logo_badge}')`;
-}
-
-/* Genera nav */
-function buildNav(){
-  const group = document.getElementById("navGroup");
-  group.innerHTML = "";
-  SECTIONS.forEach(name=>{
-    const id = slug(name);
-    const btn = document.createElement("button");
-    btn.className="nav-btn";
-    btn.setAttribute("data-id", id);
-    btn.innerHTML = `<span>${name}</span>`;
-    btn.addEventListener("click", ()=>{
-      location.hash = `#/${id}`;
-      setActive(id);
-      renderSection(id, name);
+  function activate(sectionKey){
+    // attiva pulsante
+    navLinks.forEach(a=>{
+      a.classList.toggle('active', a.dataset.section === sectionKey);
     });
-    group.appendChild(btn);
-    styleNavButton(btn);
-  });
-}
-
-/* Stato attivo nav */
-function setActive(id){
-  document.querySelectorAll(".nav-btn").forEach(b=>{
-    const on = b.getAttribute("data-id") === id;
-    b.classList.toggle("is-active", on);
-    const bg = on ? TEX.btn_pressed : TEX.btn_idle;
-    b.style.setProperty("--curr-bg", `url('${bg}')`);
-  });
-}
-
-/* Render contenuto placeholder */
-function renderSection(id, name){
-  document.getElementById("sectionTitle").textContent = `/${name}`;
-  document.getElementById("sectionHeading").textContent = name;
-  document.getElementById("sectionNote").textContent = "Sezione inizializzata. Aggiungi articoli quando sei pronto — qui compariranno indice e contenuti.";
-  // chip esempi
-  const chips = [
-    "Indice (WIP)","Linee guida","Template voce","Tag","Collegamenti"
-  ];
-  const list = document.getElementById("chipList");
-  list.innerHTML = "";
-  chips.forEach(c=>{
-    const span = document.createElement("span");
-    span.className="chip";
-    span.textContent=c;
-    list.appendChild(span);
-  });
-}
-
-/* Lista stato (tutte vuote) */
-function renderStatus(){
-  const wrap = document.getElementById("statusList");
-  wrap.innerHTML = "";
-  SECTIONS.forEach(name=>{
-    const row = document.createElement("div");
-    row.style.display="grid";
-    row.style.gridTemplateColumns="160px 1fr";
-    row.style.gap="10px";
-    row.style.padding="10px 6px";
-    row.style.borderBottom="1px solid var(--border)";
-    row.innerHTML = `
-      <div class="muted">${name}</div>
-      <div><span class="pill">0 articoli</span> <span class="pill">bozza</span></div>
-    `;
-    wrap.appendChild(row);
-  });
-}
-
-/* Ricerca in nav */
-function bindSearch(){
-  const input = document.getElementById("search");
-  input.addEventListener("input", ()=>{
-    const q = input.value.trim().toLowerCase();
-    document.querySelectorAll(".nav-btn").forEach(b=>{
-      const name = b.textContent.trim().toLowerCase();
-      b.classList.toggle("hide", q && !name.includes(q));
+    // mostra sezione
+    sections.forEach(s=>{
+      const on = s.dataset.section === sectionKey;
+      s.classList.toggle('active', on);
+      if(on) s.scrollTop = 0;
     });
-  });
-}
-
-/* Routing via hash */
-function handleHash(){
-  const id = location.hash.replace(/^#\//,"");
-  const match = SECTIONS.find(s => slug(s) === id) || null;
-  if(match){
-    setActive(id);
-    renderSection(id, match);
-  }else{
-    // default alla prima sezione
-    const first = slug(SECTIONS[0]);
-    setActive(first);
+    // focus per tastiera
+    document.getElementById('content').focus({preventScroll:true});
   }
-}
 
-/* Helper */
-const slug = s => s.toLowerCase().replace(/\s+/g,'-').replace(/[^\w\-]/g,'');
+  // click handler
+  navLinks.forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const key = a.dataset.section;
+      history.replaceState(null, '', '#'+key);
+      activate(key);
+    });
+  });
 
-/* Init */
-styleScrollbars();
-styleLogo();
-buildNav();
-renderStatus();
-bindSearch();
-window.addEventListener("hashchange", handleHash);
-handleHash();
+  // avvio da hash (o default: trading)
+  const fromHash = (location.hash||'').replace('#','').trim();
+  const initial = navLinks.some(a=>a.dataset.section===fromHash) ? fromHash : 'trading';
+  activate(initial);
 
-/* Precaricamento texture utili */
-[
-  TEX.btn_idle, TEX.btn_hover, TEX.btn_pressed,
-  TEX.btn_idle_x2, TEX.btn_hover_x2, TEX.btn_pressed_x2,
-  TEX.logo_badge, TEX.scroll_track, TEX.scroll_thumb, TEX.scroll_thumb_top, TEX.scroll_thumb_bot
-].forEach(src=>{ const i=new Image(); i.src = src; });
-
+  // ascolta variazione hash (es. back/forward)
+  window.addEventListener('hashchange', ()=>{
+    const key = (location.hash||'').replace('#','').trim();
+    if(key) activate(key);
+  });
 </script>
 </body>
 </html>
